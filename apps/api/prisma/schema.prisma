@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+  projectName = "Test App"
+  projectDatabaseType = "MySql"
+  projectNote = "Test"
+}
+
+
+model User {
+  id        Int       @id @default(autoincrement()) // Primary key
+  email     String    @unique                      // Unique email field
+  username  String    @unique                      // Unique username field
+  password  String    // Password (hashed)
+  createdAt DateTime  @default(now())              // User creation timestamp
+  updatedAt DateTime  @updatedAt                   // User update timestamp
+  messages  Message[] // Messages sent by the user
+  rooms     Room[]    @relation("RoomMembers")     // Rooms the user is part of
+  profile   UserProfile? // Optional profile data
+
+  // Add more fields as needed (e.g., profile picture, status, etc.)
+
+  Message Message[] @relation("SentMessages")
+
+  Room Room[] @relation("RoomOwner")
+
+  RoomMember RoomMember[] @relation("RoomMembers")
+}
+
+model Message {
+  id        Int       @id @default(autoincrement()) // Primary key
+  content   String    // Content of the message (for text messages)
+  type      MessageType // Message type (text, image, etc.)
+  mediaUrl  String?   // URL for media (image/video)
+  createdAt DateTime  @default(now())               // Timestamp of message creation
+  updatedAt DateTime  @updatedAt                    // Timestamp for when the message is updated
+  senderId  Int       // User who sent the message
+  sender    User      @relation("SentMessages", fields: [senderId], references: [id]) // Sender relation to User
+  roomId    Int       // Chat room where the message was sent
+  room      Room      @relation("RoomMessages", fields: [roomId], references: [id])   // Room relation to Room
+
+  // Add more fields as needed, such as message status, reactions, etc.
+
+  User User[]
+
+  @@index([senderId])
+  @@index([roomId])
+}
+
+model Room {
+  id        Int       @id @default(autoincrement()) // Primary key
+  name      String    // Name of the room
+  description String? // Optional description of the room
+  type      RoomType // Type of the room (public, private, etc.)
+  createdAt DateTime  @default(now())               // Room creation timestamp
+  updatedAt DateTime  @updatedAt                    // Room update timestamp
+  messages  Message[] @relation("RoomMessages")    // Messages sent in the room
+  members   User[]    @relation("RoomMembers")      // Users who are part of the room
+  ownerId   Int       // Owner of the room (creator)
+  owner     User      @relation("RoomOwner", fields: [ownerId], references: [id])
+
+  // Add more fields for room settings (e.g., room avatar, privacy settings, etc.)
+
+  RoomMember RoomMember[] @relation("RoomMembers")
+
+  @@index([ownerId])
+}
+
+model RoomMember {
+  userId  Int  // Foreign key for the User
+  roomId  Int  // Foreign key for the Room
+
+  user    User @relation("RoomMembers", fields: [userId], references: [id])
+  room    Room @relation("RoomMembers", fields: [roomId], references: [id])
+
+  // Composite primary key for RoomMember to avoid duplicate room-user pairs
+  @@id([userId, roomId])
+  @@index([roomId])
+}
+
+model UserProfile {
+  id        Int    @id @default(autoincrement()) // Primary key
+  userId    Int    @unique
+  firstName String?
+  lastName  String?
+  avatarUrl String?
+  bio       String?
+  user      User   @relation(fields: [userId], references: [id]) // Relation to User
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VIDEO
+  FILE
+}
+
+enum RoomType {
+  PUBLIC
+  PRIVATE
+  DM // Direct Message
+}
