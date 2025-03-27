@@ -43,16 +43,16 @@ model User {
 }
 
 model Message {
-  id        Int       @id @default(autoincrement()) // Primary key
-  content   String    // Content of the message (for text messages)
-  type      MessageType // Message type (text, image, etc.)
-  mediaUrl  String?   // URL for media (image/video)
-  createdAt DateTime  @default(now())               // Timestamp of message creation
-  updatedAt DateTime  @updatedAt                    // Timestamp for when the message is updated
-  senderId  Int       // User who sent the message
-  sender    User      @relation("SentMessages", fields: [senderId], references: [id]) // Sender relation to User
-  roomId    Int       // Chat room where the message was sent
-  room      Room      @relation("RoomMessages", fields: [roomId], references: [id])   // Room relation to Room
+  id        Int       @id @default(autoincrement()) /// Primary key
+  content   String    /// Content of the message (for text messages)
+  type      MessageType /// Message type (text, image, etc.)
+  mediaUrl  String?   /// URL for media (image/video)
+  createdAt DateTime  @default(now())               /// Timestamp of message creation
+  updatedAt DateTime  @updatedAt                    /// Timestamp for when the message is updated
+  senderId  Int       /// User who sent the message
+  sender    User      @relation("SentMessages", fields: [senderId], references: [id]) /// Sender relation to User
+  roomId    Int       /// Chat room where the message was sent
+  room      Room      @relation("RoomMessages", fields: [roomId], references: [id])   /// Room relation to Room
 
   // Add more fields as needed, such as message status, reactions, etc.
 
