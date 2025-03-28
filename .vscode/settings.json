@@ -1,6 +1,7 @@
 {
     "conventionalCommits.scopes": [
         "root",
-        "apps/api"
+        "apps/api",
+        "packages"
     ]
 }
